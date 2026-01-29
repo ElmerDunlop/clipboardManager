@@ -4,13 +4,13 @@ import android.app.Service
 import android.content.ClipboardManager
 import android.content.Intent
 import android.os.IBinder
-import androidx.lifecycle.ViewModelProvider
 import com.clipboard.manager.database.ClipboardDatabase
 import com.clipboard.manager.database.ClipboardEntry
 import com.clipboard.manager.database.ClipboardRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class ClipboardMonitorService : Service() {
@@ -39,6 +39,7 @@ class ClipboardMonitorService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         clipboardManager.removePrimaryClipChangedListener(clipboardListener)
+        serviceScope.cancel()
     }
 
     override fun onBind(intent: Intent?): IBinder? {

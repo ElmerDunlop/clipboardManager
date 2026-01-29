@@ -19,7 +19,7 @@
         </activity>
 
         <service
-            android:name=".ClipboardMonitorService"
+            android:name=".service.ClipboardMonitorService"
             android:enabled="true"
             android:exported="false" />
     </application>

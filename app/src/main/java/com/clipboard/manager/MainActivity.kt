@@ -2,6 +2,7 @@ package com.clipboard.manager
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -22,6 +23,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: ClipboardAdapter
     private var isMonitoring = false
 
+    companion object {
+        private const val PREFS_NAME = "ClipboardManagerPrefs"
+        private const val KEY_MONITORING = "is_monitoring"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -29,9 +35,23 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[ClipboardViewModel::class.java]
 
+        // Restore monitoring state
+        restoreMonitoringState()
+
         setupRecyclerView()
         setupButtons()
         observeData()
+    }
+
+    private fun restoreMonitoringState() {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        isMonitoring = prefs.getBoolean(KEY_MONITORING, false)
+        updateMonitoringUI()
+    }
+
+    private fun saveMonitoringState() {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_MONITORING, isMonitoring).apply()
     }
 
     private fun setupRecyclerView() {
@@ -67,14 +87,23 @@ class MainActivity : AppCompatActivity() {
         
         if (isMonitoring) {
             startService(intent)
-            binding.buttonToggleMonitoring.text = getString(R.string.stop_monitoring)
-            binding.statusText.text = getString(R.string.monitoring_active)
             Toast.makeText(this, getString(R.string.monitoring_active), Toast.LENGTH_SHORT).show()
         } else {
             stopService(intent)
+            Toast.makeText(this, getString(R.string.monitoring_inactive), Toast.LENGTH_SHORT).show()
+        }
+        
+        saveMonitoringState()
+        updateMonitoringUI()
+    }
+
+    private fun updateMonitoringUI() {
+        if (isMonitoring) {
+            binding.buttonToggleMonitoring.text = getString(R.string.stop_monitoring)
+            binding.statusText.text = getString(R.string.monitoring_active)
+        } else {
             binding.buttonToggleMonitoring.text = getString(R.string.start_monitoring)
             binding.statusText.text = getString(R.string.monitoring_inactive)
-            Toast.makeText(this, getString(R.string.monitoring_inactive), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -88,24 +117,24 @@ class MainActivity : AppCompatActivity() {
     private fun showDeleteDialog(entry: ClipboardEntry) {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.delete))
-            .setMessage("确定要删除这条记录吗？")
-            .setPositiveButton("删除") { _, _ ->
+            .setMessage(getString(R.string.confirm_delete))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 viewModel.delete(entry)
-                Toast.makeText(this, "已删除", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.deleted), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun showClearHistoryDialog() {
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.clear_history))
-            .setMessage("确定要清空所有历史记录吗？")
-            .setPositiveButton("清空") { _, _ ->
+            .setMessage(getString(R.string.confirm_clear))
+            .setPositiveButton(getString(R.string.clear_history)) { _, _ ->
                 viewModel.deleteAll()
-                Toast.makeText(this, "已清空历史", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.history_cleared), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
