@@ -54,9 +54,12 @@ jobs:
           if [ -f android/gradlew ]; then
             chmod +x android/gradlew
             (cd android && ./gradlew assembleDebug)
-          else
+          elif [ -f gradlew ]; then
             chmod +x gradlew
             ./gradlew assembleDebug
+          else
+            echo "Gradle wrapper not found. Please add gradlew or android/gradlew." >&2
+            exit 1
           fi
 
       - name: Upload Flutter APK artifact
@@ -64,6 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flutter-apk-debug
+          if-no-files-found: warn
           path: build/app/outputs/flutter-apk/*.apk
 
       - name: Upload Gradle APK artifact
@@ -71,6 +75,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk-debug
+          if-no-files-found: warn
           path: |
             app/build/outputs/apk/debug/*.apk
             android/app/build/outputs/apk/debug/*.apk
