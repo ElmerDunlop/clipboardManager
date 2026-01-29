@@ -1,0 +1,73 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Detect project type
+        id: project
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "type=flutter" >> "$GITHUB_OUTPUT"
+          elif [ -f gradlew ] || [ -f android/gradlew ] || [ -f build.gradle ] || [ -f android/build.gradle ]; then
+            echo "type=android" >> "$GITHUB_OUTPUT"
+          else
+            echo "type=unknown" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Flutter
+        if: steps.project.outputs.type == 'flutter'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter dependencies
+        if: steps.project.outputs.type == 'flutter'
+        run: flutter pub get
+
+      - name: Build APK (Flutter)
+        if: steps.project.outputs.type == 'flutter'
+        run: flutter build apk --release
+
+      - name: Build APK (Gradle)
+        if: steps.project.outputs.type == 'android'
+        run: |
+          if [ -f android/gradlew ]; then
+            chmod +x android/gradlew
+            (cd android && ./gradlew assembleDebug)
+          else
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          fi
+
+      - name: Upload APK artifact
+        if: steps.project.outputs.type != 'unknown'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: |
+            **/*.apk
+
+      - name: Missing project sources
+        if: steps.project.outputs.type == 'unknown'
+        run: |
+          echo "No Flutter or Android Gradle project detected."
+          exit 1
