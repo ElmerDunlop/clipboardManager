@@ -1,0 +1,87 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Detect project type
+        id: project
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "type=flutter" >> "$GITHUB_OUTPUT"
+          elif [ -f gradlew ] || [ -f android/gradlew ] || [ -f build.gradle ] || [ -f android/build.gradle ]; then
+            echo "type=android" >> "$GITHUB_OUTPUT"
+          else
+            echo "type=unknown" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Flutter
+        if: steps.project.outputs.type == 'flutter'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter dependencies
+        if: steps.project.outputs.type == 'flutter'
+        run: flutter pub get
+
+      - name: Build APK (Flutter)
+        if: steps.project.outputs.type == 'flutter'
+        run: flutter build apk --debug
+
+      - name: Build APK (Gradle)
+        if: steps.project.outputs.type == 'android'
+        run: |
+          if [ -f android/gradlew ]; then
+            chmod +x android/gradlew
+            (cd android && ./gradlew assembleDebug)
+          elif [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            echo "Gradle wrapper not found. Please add gradlew or android/gradlew." >&2
+            exit 1
+          fi
+
+      - name: Upload Flutter APK artifact
+        if: steps.project.outputs.type == 'flutter'
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-apk-debug
+          if-no-files-found: warn
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: Upload Gradle APK artifact
+        if: steps.project.outputs.type == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-debug
+          if-no-files-found: warn
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/debug/*.apk
+
+      - name: Missing project sources
+        if: steps.project.outputs.type == 'unknown'
+        run: |
+          echo "No Flutter or Android Gradle project detected."
+          exit 1
