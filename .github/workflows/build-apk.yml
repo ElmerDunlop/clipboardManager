@@ -3,7 +3,8 @@ name: Build APK
 on:
   push:
     branches:
-      - '**'
+      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Build APK (Flutter)
         if: steps.project.outputs.type == 'flutter'
-        run: flutter build apk --release
+        run: flutter build apk --debug
 
       - name: Build APK (Gradle)
         if: steps.project.outputs.type == 'android'
@@ -58,13 +59,21 @@ jobs:
             ./gradlew assembleDebug
           fi
 
-      - name: Upload APK artifact
-        if: steps.project.outputs.type != 'unknown'
+      - name: Upload Flutter APK artifact
+        if: steps.project.outputs.type == 'flutter'
         uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: flutter-apk-debug
+          path: build/app/outputs/flutter-apk/*.apk
+
+      - name: Upload Gradle APK artifact
+        if: steps.project.outputs.type == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-debug
           path: |
-            **/*.apk
+            app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/debug/*.apk
 
       - name: Missing project sources
         if: steps.project.outputs.type == 'unknown'
