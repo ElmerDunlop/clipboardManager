@@ -52,7 +52,7 @@ app/src/main/java/com/clipboard/manager/
 
 ## 构建项目
 
-使用Android Studio打开项目，或使用Gradle命令行：
+使用Android Studio打开项目，或使用Gradle Wrapper命令行：
 
 ```bash
 ./gradlew assembleDebug

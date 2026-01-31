@@ -211,7 +211,7 @@ clipboardManager/
 
 ### 构建项目
 ```bash
-# 使用Android Studio打开项目，或
+# 使用Android Studio打开项目，或使用Gradle Wrapper
 ./gradlew assembleDebug
 ```
 
