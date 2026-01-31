@@ -61,9 +61,9 @@ while [ -h "$PRG" ] ; do
     fi
 done
 SAVED="`pwd`"
-cd "`dirname \"$PRG\"`/" >&-
+cd "`dirname \"$PRG\"`/" > /dev/null 2>&1
 APP_HOME="`pwd -P`"
-cd "$SAVED" >&-
+cd "$SAVED" > /dev/null 2>&1
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
