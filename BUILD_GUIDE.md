@@ -32,20 +32,9 @@
    - 点击运行按钮（绿色三角形）
    - 选择目标设备
 
-### 方法2：使用命令行（需要先安装Gradle Wrapper）
+### 方法2：使用命令行（已内置Gradle Wrapper）
 
-如果没有Gradle Wrapper，先安装：
-```bash
-# 下载Gradle 8.0
-wget https://services.gradle.org/distributions/gradle-8.0-bin.zip
-unzip gradle-8.0-bin.zip
-export PATH=$PATH:gradle-8.0/bin
-
-# 初始化wrapper
-gradle wrapper
-```
-
-然后构建：
+使用Gradle Wrapper构建（需要可访问Google/Maven仓库下载Android Gradle Plugin依赖）：
 ```bash
 # 构建Debug版本
 ./gradlew assembleDebug
