@@ -34,7 +34,7 @@
 
 ### 方法2：使用命令行（已内置Gradle Wrapper）
 
-使用Gradle Wrapper构建（需要可访问Google/Maven仓库下载Android Gradle Plugin依赖）：
+使用Gradle Wrapper构建（需要可访问Google/Maven仓库下载Android Gradle Plugin依赖，离线环境将无法解析插件）：
 ```bash
 # 构建Debug版本
 ./gradlew assembleDebug
